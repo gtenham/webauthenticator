@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Authentication demo</title>
-    <script src="/encryption.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/8.0.12/jsrsasign-all-min.js"></script>
+    <script src="/js/encryption.js"></script>
+    <script src="/js/ws.js"></script>
 </head>
 <body>
     <h1>Authentication demo</h1>
@@ -16,10 +18,10 @@
             mode = "AES-GCM";
 
         PBKDF2WithHmacSHA256(beid, password, iterations, mode)
-            .then(keyBytes => console.log("Hashed salt: ", bufToHex(keyBytes)));
+            .then(keyBytes => console.log("Hashed salt     : ", bufToHex(keyBytes)));
 
         PBKDF2WithHmacSHA256(password, salt, iterations, mode)
-            .then(keyBytes => console.log("Hashed password: ", bufToHex(keyBytes)));
+            .then(keyBytes => console.log("Hashed password : ", bufToHex(keyBytes)));
     </script>
 </body>
 </html>

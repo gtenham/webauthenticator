@@ -2,7 +2,10 @@ package nl.gertontenham.poc;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
@@ -22,23 +25,47 @@ public class AuthenticationServer extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> future) {
-        final Router router = Router.router(vertx);
+        HttpServerOptions httpServerOptions =
+                new HttpServerOptions()
+                        .setCompressionSupported(true)
+                        .setCompressionLevel(HttpServerOptions.DEFAULT_COMPRESSION_LEVEL);
 
+        final Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
 
         router.route("/login").handler(this::loginHandler);
         router.route("/token").handler(this::tokenHandler);
         router.route("/*").handler(StaticHandler.create());
 
-        vertx.createHttpServer()
+        vertx.createHttpServer(httpServerOptions)
+                .websocketHandler(webSocketHandler())
                 .requestHandler(router)
                 .listen(8888, result -> {
                     if (result.succeeded()) {
-                        logger.info("Server running on port " + 8888);
+                        logger.info("Server [" + deploymentID() + "] running on port " + 8888);
                     } else {
                         future.fail(result.cause());
                     }
                 });
+    }
+
+    private Handler<ServerWebSocket> webSocketHandler() {
+
+        return new Handler<ServerWebSocket>() {
+            @Override
+            public void handle(final ServerWebSocket ws) {
+                if (ws.path().equalsIgnoreCase("/messaging/event")) {
+                    final String clientHandlerId = ws.binaryHandlerID();
+                    logger.info("Client connected [" + clientHandlerId + "]");
+                    ws.textMessageHandler(rs -> {
+                        // Incoming message
+                        logger.info("Message from client [" + clientHandlerId + "] => " + rs);
+                    });
+                } else {
+                    ws.reject();
+                }
+            }
+        };
     }
 
     private void loginHandler(RoutingContext context) {
