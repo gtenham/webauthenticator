@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Authentication demo</title>
+    <script src="/encryption.js"></script>
+</head>
+<body>
+    <h1>Authentication demo</h1>
+    <script>
+
+        let password = strToBuf("1234"),
+            beid = strToBuf("79e4d731-a219-4e4d-ab94-764b79c96839"),
+            salt = hexToBuf("6cba7a0f92cb58b2d2ce3e3ed927c9d66b076ec449d602c3ca49e6400ce57acd"),
+            iterations = 10000,
+            mode = "AES-GCM";
+
+        PBKDF2WithHmacSHA256(beid, password, iterations, mode)
+            .then(keyBytes => console.log("Hashed salt: ", bufToHex(keyBytes)));
+
+        PBKDF2WithHmacSHA256(password, salt, iterations, mode)
+            .then(keyBytes => console.log("Hashed password: ", bufToHex(keyBytes)));
+    </script>
+</body>
+</html>
