@@ -6,18 +6,22 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.json.Json;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import nl.gertontenham.poc.data.EventDTO;
+import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 public class AuthenticationServer extends AbstractVerticle {
 
@@ -56,10 +60,25 @@ public class AuthenticationServer extends AbstractVerticle {
             public void handle(final ServerWebSocket ws) {
                 if (ws.path().equalsIgnoreCase("/messaging/event")) {
                     final String clientHandlerId = ws.binaryHandlerID();
-                    logger.info("Client connected [" + clientHandlerId + "]");
-                    ws.textMessageHandler(rs -> {
+                    String clientId = "";
+                    if (ws.query() != null && !ws.query().isEmpty()) {
+                        clientId = Arrays.asList(ws.query().split("&")).stream()
+                                .filter(pair -> pair.contains("X-messaging-client-id")).findFirst().get().split("=")[1];
+                    }
+
+                    logger.info("Client connected [" + clientHandlerId + "] with clientId [" + clientId + "]");
+
+                    EventDTO connectEvent = new EventDTO.Builder()
+                            .withType("ClientConnectEvent")
+                            .withSubject("client."+ clientId)
+                            .withPayload("{clientHandlerId: \"" + clientHandlerId + "\"}")
+                            .build();
+                    ws.writeBinaryMessage(Json.encodeToBuffer(connectEvent));
+
+                    ws.binaryMessageHandler(rs -> {
                         // Incoming message
-                        logger.info("Message from client [" + clientHandlerId + "] => " + rs);
+                        EventDTO incomingEvent = Json.decodeValue(rs, EventDTO.class);
+                        logger.info("Message from client [" + clientHandlerId + "] => " + incomingEvent.toString());
                     });
                 } else {
                     ws.reject();

@@ -5,11 +5,12 @@
     <title>Authentication demo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/8.0.12/jsrsasign-all-min.js"></script>
     <script src="/js/encryption.js"></script>
-    <script src="/js/ws.js"></script>
+    <script type="module" src="/js/ws.js"></script>
 </head>
 <body>
     <h1>Authentication demo</h1>
-    <script>
+    <script type="module">
+        import {sendMessage} from './js/ws.js';
 
         let password = strToBuf("1234"),
             beid = strToBuf("79e4d731-a219-4e4d-ab94-764b79c96839"),
@@ -22,6 +23,8 @@
 
         PBKDF2WithHmacSHA256(password, salt, iterations, mode)
             .then(keyBytes => console.log("Hashed password : ", bufToHex(keyBytes)));
+
+        //sendMessage({message: "Hello"});
     </script>
 </body>
 </html>

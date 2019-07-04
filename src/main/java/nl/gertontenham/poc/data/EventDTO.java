@@ -1,7 +1,10 @@
 package nl.gertontenham.poc.data;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.io.Serializable;
 
+@JsonDeserialize(builder = EventDTO.Builder.class)
 public class EventDTO implements Serializable {
 
     private final String subject;
@@ -47,5 +50,10 @@ public class EventDTO implements Serializable {
 
     public Object getPayload() {
         return payload;
+    }
+
+    @Override
+    public String toString() {
+        return "Event [type=" + type + ", subject="+ subject+"]";
     }
 }

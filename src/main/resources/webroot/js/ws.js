@@ -1,14 +1,20 @@
 'use strict';
 
 let _socket = false;
-let _clientHandlerId = null;
+let _clientId = crypto.getRandomValues(new Uint32Array(1))[0];
 let _utf8decoder = new TextDecoder('utf-8');
 let _utf8encoder = new TextEncoder('utf-8');
+
+export const sendMessage = json => {
+    let buf = _utf8encoder.encode(JSON.stringify(json));
+    _socket.send(buf);
+};
 
 const _socketMessageHandler = event => {
     try {
         let _data = _utf8decoder.decode(event['data']);
         let _oParsedJson = JSON.parse(_data);
+        let {'type': _sType, 'subject': _sSubject, 'payload': _oPayload} = _oParsedJson;
 
     } catch(error) {
         // Only interested in proper JSON formatted data, ignore anything else!
@@ -16,7 +22,7 @@ const _socketMessageHandler = event => {
 };
 
 const _socketOpenHandler = () => {
-
+    sendMessage({subject: "browser", type: "connection handshake", payload: {message: "hello!"}});
 };
 
 const _socketErrorHandler = () => {
@@ -35,7 +41,7 @@ const _socketCloseHandler = () => {
 const _connect = () => {
     let _host = location.origin.replace(/^http/, 'ws');
     let _sUrl = _host + '/messaging/event';
-    _socket = new WebSocket(_sUrl);
+    _socket = new WebSocket(_sUrl + "?X-messaging-client-id=" + _clientId);
 
     _socket.binaryType = 'arraybuffer';
 
@@ -44,7 +50,6 @@ const _connect = () => {
     _socket.addEventListener('error', _socketErrorHandler);
     _socket.addEventListener('close', _socketCloseHandler);
 
-    _socket.send()
 };
 
 _connect();
