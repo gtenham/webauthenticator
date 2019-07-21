@@ -6,6 +6,7 @@ let _utf8decoder = new TextDecoder('utf-8');
 let _utf8encoder = new TextEncoder('utf-8');
 
 export const sendMessage = json => {
+    json['senderId'] = _clientId;
     let buf = _utf8encoder.encode(JSON.stringify(json));
     _socket.send(buf);
 };
@@ -14,15 +15,15 @@ const _socketMessageHandler = event => {
     try {
         let _data = _utf8decoder.decode(event['data']);
         let _oParsedJson = JSON.parse(_data);
-        let {'type': _sType, 'subject': _sSubject, 'payload': _oPayload} = _oParsedJson;
-
+        let {'senderId': _sSenderId, 'type': _sType, 'subject': _sSubject, 'payload': _oPayload} = _oParsedJson;
+        console.log(_oParsedJson);
     } catch(error) {
         // Only interested in proper JSON formatted data, ignore anything else!
     }
 };
 
 const _socketOpenHandler = () => {
-    sendMessage({subject: "browser", type: "connection handshake", payload: {message: "hello!"}});
+    sendMessage({subject: "ws.clients", type: "connection handshake", payload: {message: "hello everyone!"}});
 };
 
 const _socketErrorHandler = () => {
