@@ -1,5 +1,6 @@
 package nl.gertontenham.poc;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -21,6 +22,7 @@ import nl.gertontenham.poc.data.EventDTO;
 import nl.gertontenham.poc.eventbus.EventCodec;
 
 import java.util.Arrays;
+import java.util.Date;
 
 public class GatewayServer extends AbstractVerticle {
     private static final Logger logger = LoggerFactory.getLogger(GatewayServer.class);
@@ -39,9 +41,9 @@ public class GatewayServer extends AbstractVerticle {
         final Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
 
-        router.route("/auth/register").handler(this::registerHandler);
-        router.route("/auth/login").handler(this::loginHandler);
-        router.route("/auth/token").handler(this::tokenHandler);
+        router.route("/user/register").handler(this::registerHandler);
+        router.route("/user/login").handler(this::loginHandler);
+        router.route("/user/token").handler(this::tokenHandler);
         router.route("/*").handler(StaticHandler.create());
 
         vertx.createHttpServer(httpServerOptions)
@@ -162,5 +164,23 @@ public class GatewayServer extends AbstractVerticle {
                     .setStatusCode(405)
                     .end("Method not allowed here");
         }
+    }
+
+    private void jwtTokenResponse(RoutingContext context, final String subject) {
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .subject(subject)
+                .issuer("Gateway server")
+                .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+                .build();
+
+        JsonObject body = new JsonObject();
+        body.put("bearerToken", "");
+        body.put("expirationTimeInSeconds", 60);
+
+        context.response().headers().add("Content-Type", "application/json");
+        context.response()
+                .setStatusCode(200)
+                .end(Json.encodeToBuffer(body));
+
     }
 }

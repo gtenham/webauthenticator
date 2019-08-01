@@ -24,6 +24,10 @@
         PBKDF2WithHmacSHA256(password, salt, iterations, mode)
             .then(keyBytes => console.log("Hashed password : ", bufToHex(keyBytes)));
 
+
+        PBKDF2WithHmacSHA256(beid, password, iterations, mode)
+            .then(saltBytes => PBKDF2WithHmacSHA256(password, saltBytes, iterations, mode)
+                                    .then(pwdBytes => console.log("Hashed pwd 2    : ", bufToHex(pwdBytes))));
         //sendMessage({message: "Hello"});
     </script>
 </body>

@@ -4,6 +4,7 @@ const PBKDF2WithHmacSHA256 = (password, salt, iterations, mode) =>
         .then(baseKey => crypto.subtle.deriveKey({name: "PBKDF2", salt, iterations, hash: {name: "SHA-256"}, }, baseKey, {name: mode, length: 256}, true, ["encrypt", "decrypt"]))
         .then(key => crypto.subtle.exportKey("raw", key));
 
+// Warning: SHA-512 not implemented in every browser
 const PBKDF2WithHmacSHA512 = (password, salt, iterations, mode) =>
     crypto.subtle.importKey("raw", password, {name: "PBKDF2"}, false, ["deriveKey"])
         .then(baseKey => crypto.subtle.deriveKey({name: "PBKDF2", salt, iterations, hash: {name: "SHA-512"}, }, baseKey, {name: mode, length: 256}, true, ["encrypt", "decrypt"]))

@@ -21,17 +21,4 @@ public class AuthenticationService extends AbstractVerticle {
     }
 
 
-
-    private static byte[] PBKDF2WithHmacSHA256( final char[] chars, final byte[] salt, final int iterations ) {
-
-        try {
-            SecretKeyFactory skf = SecretKeyFactory.getInstance( "PBKDF2WithHmacSHA256" );
-            PBEKeySpec spec = new PBEKeySpec( chars, salt, iterations, 256 );
-            SecretKey key = skf.generateSecret( spec );
-            byte[] res = key.getEncoded( );
-            return res;
-        } catch ( NoSuchAlgorithmException | InvalidKeySpecException e ) {
-            throw new RuntimeException( e );
-        }
-    }
 }
